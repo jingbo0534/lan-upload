@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>传文件到电脑</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header>
+  <div class="brand">📁 传到电脑</div>
+  <div class="sub">局域网内无需登录，扫码即可上传</div>
+</header>
+
+<main>
+  <div id="dropZone" class="drop-zone">
+    <div class="drop-inner">
+      <div class="icon">⬆️</div>
+      <div class="hint">把文件拖到这里，或点击下方按钮</div>
+      <div class="pick-row">
+        <button type="button" class="pick main" id="pickFiles">📁 选择文件</button>
+        <button type="button" class="pick cam" id="pickCam">📷 拍照上传</button>
+      </div>
+      <div class="mini">支持多选文件 / 相册 / 拍照 / 可上传任意类型</div>
+    </div>
+    <input type="file" id="fileInput" multiple accept="*/*" style="display:none" />
+    <input type="file" id="camInput" accept="image/*" capture="environment" style="display:none" />
+  </div>
+
+  <div id="infoBar" class="info-bar">
+    <button class="btn ghost" id="clearBtn" hidden>清空</button>
+    <span class="counter" id="counter">已选 0 个文件</span>
+    <button class="btn primary" id="uploadBtn" disabled>上传</button>
+  </div>
+
+  <ul id="fileList" class="file-list"></ul>
+
+  <div id="doneBox" class="done-box" hidden></div>
+</main>
+
+<footer>连接中断？联系接收方确认二维码地址</footer>
+<script src="./app.js"></script>
+</body>
+</html>

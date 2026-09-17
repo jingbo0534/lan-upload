@@ -1,0 +1,17 @@
+# 编译产物
+build/bin/
+frontend/dist/
+*.exe
+*.msi
+
+# 依赖
+node_modules/
+
+# 本地缓存 / 日志
+*.log
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/

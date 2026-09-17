@@ -1,0 +1,50 @@
+*{box-sizing:border-box}
+:root{
+  --bg:#eef1f6; --panel:#fff; --line:#e3e8f0;
+  --ink:#1b2430; --mute:#8a94a6; --brand:#3b82f6; --brand-dark:#2563eb;
+  --ok:#16a34a; --warn:#d97706; --danger:#ef4444; --radius:12px;
+}
+html,body,#app{height:100%}
+body{
+  margin:0;font-family:"Segoe UI",-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;
+  color:var(--ink);background:var(--bg);font-size:14px;
+}
+
+/* 通用按钮 */
+.btn-row{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn-row.right{justify-content:flex-end;margin:0 0 0 auto}
+.btn{border:none;border-radius:9px;padding:9px 16px;cursor:pointer;font-size:14px;transition:.15s;background:#e8edf5;color:#333}
+.btn.primary{background:var(--brand);color:#fff}
+.btn.primary:hover{background:var(--brand-dark)}
+.btn.danger{background:#fee2e2;color:var(--danger)}
+.btn.danger:hover{background:#fecaca}
+.btn.ghost{background:#f1f5f9;color:#475569}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+
+/* 通用卡片 / 页头 */
+.page-head{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.page-head h2{margin:0;font-size:21px}
+.page-head .sub{color:var(--mute);font-size:13px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.card-title{font-weight:600;margin-bottom:10px;font-size:15px}
+
+/* 通用二维码 */
+.qr{width:200px;height:200px;margin:6px auto;image-rendering:pixelated}
+.qr-empty{padding:60px;color:var(--mute)}
+.qr-tip{color:var(--mute);font-size:12px;margin-top:8px}
+
+/* 通用表格（文件/清理共用） */
+.table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.table th{text-align:left;background:#f8fafc;color:var(--mute);font-weight:600;font-size:12px;padding:10px 12px;border-bottom:1px solid var(--line)}
+.table td{padding:9px 12px;border-bottom:1px solid #f1f5f9;font-size:13px}
+.table tbody tr:hover{background:#f9fbfe}
+.fname{cursor:default;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:420px}
+.fname span:hover{color:var(--brand)}
+.ops{white-space:nowrap}
+.ops button{border:1px solid var(--line);background:#fff;color:#475569;border-radius:6px;padding:4px 8px;font-size:12px;cursor:pointer;margin-left:4px;margin-right:0}
+.ops button:first-child{margin-left:0}
+.ops button:hover{background:#f0f5ff;color:var(--brand)}
+.ops button.del:hover{background:#fee2e2;color:var(--danger)}
+.muted{color:var(--mute)}
+.empty{text-align:center;color:var(--mute);padding:40px;font-size:13px}
