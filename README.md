@@ -1,19 +1,78 @@
-# README
+# 局域网文件接收 (LAN Upload)
 
-## About
+一个局域网内**免登录、扫码即传**的文件接收桌面工具。电脑端运行后生成二维码，手机扫码即可把文件上传到本机，支持文件管理、清理与二维码连 WiFi。
 
-This is the official Wails Vanilla template.
+## ✨ 功能特性
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+- **扫码上传，零登录零安装**：电脑端自动探测局域网 IP 并生成二维码，手机相机扫码即可上传（多选 / 相册 / 拍照 / 拖拽，支持任意类型）
+- **文件管理**：上传文件列表、面包屑导航、图片/文本在线预览、打开所在目录、新建文件夹、删除（进入回收站）
+- **文件清理**：按名称关键字、类型、日期、大小筛选，预览命中后批量清理（移入回收站，可清空）
+- **扫码连 WiFi**：输入 WiFi 名称/密码生成标准 `WIFI:` 二维码，手机系统相机扫码一键连接（信息支持自动保存，下次打开自动恢复）
+- **系统托盘**：关闭窗口最小化到托盘不退出，托盘菜单可重开界面、复制上传地址、退出
+- **接收通知**：收到新文件时右下角弹窗提示（另有系统通知尽力而为）
+- 自动按日期归档、同名自动编号，防止覆盖
 
-## Live Development
+## 🛠 技术栈
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+| 部分 | 技术 |
+|---|---|
+| 桌面框架 | [Wails v2](https://wails.io) |
+| 后端 | Go（`app/` 子包） |
+| 前端 | Vue 3 + Vite |
+| 二维码 | `github.com/skip2/go-qrcode` / `github.com/getlantern/systray` |
 
-## Building
+## 📁 目录结构
 
-To build a redistributable, production mode package, use `wails build`.
+```
+lan-upload/
+├── main.go          # 入口：创建 App、启动托盘、注册 Wails
+├── go.mod
+├── app/             # 后端逻辑（package app）
+│   ├── server.go    # 局域网上传接收 HTTP 服务
+│   ├── app.go       # Wails 绑定方法
+│   ├── files.go     # 文件管理 / 上传落盘
+│   ├── cleanup.go   # 清理筛选 / 回收站
+│   ├── wifi.go / qr.go / preview.go ...
+│   └── uploads/     # 内嵌的手机上传页
+└── frontend/        # Vue3 前端（概览 / 文件管理 / 清理 / 设置）
+```
+
+## 🚀 使用
+
+### 直接运行（无需安装）
+
+构建后的单文件可执行程序（Windows）双击即可：
+
+```
+build/bin/lan-upload.exe
+```
+
+首次启动会自动创建接收目录：`%APPDATA%\lan-upload\received\`（可在“设置”中修改保存位置）。
+
+### 从源码构建
+
+需要 [Go 1.23+](https://go.dev/dl/)、[Node.js 16+](https://nodejs.org/)、[Wails CLI](https://wails.io/docs/gettingstarted/installation) 及 WebView2 Runtime。
+
+```bash
+# 安装前端依赖
+cd frontend && npm install && cd ..
+
+# 开发模式（热重载）
+wails dev
+
+# 构建生产版可执行文件
+wails build
+```
+
+## ⚙️ 使用流程
+
+1. 启动程序，状态页显示“接收中”，二维码即上传入口
+2. 手机相机扫码 → 浏览器打开 → 选择文件上传
+3. 在“文件管理”查看 / 预览 / 管理已接收文件
+4. 需要分享 WiFi 时，在“概览”填入 WiFi 信息生成二维码
+
+## 📝 说明
+
+- 本工具面向同一局域网（同一网段）；VPN 多网卡时可在“设置”里指定广播地址
+- 删除/清理先进入回收站（`<保存目录>\.trash\`），清空后才真正释放空间
+- 局域网页面（手机上传页）使用系统 WebView/浏览器，无需额外安装
