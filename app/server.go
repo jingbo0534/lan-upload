@@ -22,6 +22,14 @@ var staticNames = map[string]string{
 	"/app.js":     "uploads/app.js",
 }
 
+// uploadResult 单个文件的接收结果（顺序与请求中 files 字段一致，便于手机端逐条标注）
+type uploadResult struct {
+	Name string `json:"name"`
+	OK   bool   `json:"ok"`
+	Path string `json:"path,omitempty"`
+	Err  string `json:"err,omitempty"`
+}
+
 // ReceiverServer 局域网上传接收服务
 type ReceiverServer struct {
 	app    *App
@@ -136,19 +144,28 @@ func (rs *ReceiverServer) handleUpload(w http.ResponseWriter, r *http.Request) {
 
 	saved := make([]string, 0, len(files))
 	fails := make([]string, 0, len(files))
+	results := make([]uploadResult, 0, len(files))
 	for _, fh := range files {
+		item := uploadResult{Name: fh.Filename}
 		src, err := fh.Open()
 		if err != nil {
+			item.Err = err.Error()
 			fails = append(fails, fh.Filename)
+			results = append(results, item)
 			continue
 		}
 		dest, err := rs.app.saveUploaded(fh.Filename, src)
 		src.Close()
 		if err != nil {
+			item.Err = err.Error()
 			fails = append(fails, fh.Filename+" ("+err.Error()+")")
+			results = append(results, item)
 			continue
 		}
+		item.OK = true
+		item.Path = dest
 		saved = append(saved, dest)
+		results = append(results, item)
 	}
 	rs.app.notifyServerChanged()
 	if len(saved) > 0 {
@@ -156,10 +173,15 @@ func (rs *ReceiverServer) handleUpload(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
-	fmt.Fprintf(w, `{"ok":%v,"saved":%d,"failed":%d,"savedDetail":%s,"failedDetail":%s}`,
-		len(fails) == 0,
-		len(saved), len(fails),
-		quoteJSON(saved), quoteJSON(fails))
+	body, _ := jsonMarshal(map[string]any{
+		"ok":           len(fails) == 0,
+		"saved":        len(saved),
+		"failed":       len(fails),
+		"savedDetail":  saved,
+		"failedDetail": fails,
+		"results":      results,
+	})
+	w.Write(body)
 }
 
 // handleDownload 下载已接收文件（相对路径经 app 校验，防目录穿越）

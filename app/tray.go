@@ -2,6 +2,7 @@ package app
 
 import (
 	_ "embed"
+	"runtime"
 
 	"github.com/getlantern/systray"
 
@@ -20,6 +21,11 @@ func NewTray(a *App) *Tray { return &Tray{app: a} }
 
 // Run 阻塞运行系统托盘（放入 goroutine 调用）
 func (t *Tray) Run() {
+	// Windows 下托盘隐藏窗口与消息循环必须固定在同一 OS 线程，
+	// 否则 goroutine 被调度到其它线程后，点击事件将永远收不到（表现为点击无反应）
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+
 	systray.Run(t.onReady, t.onExit)
 }
 

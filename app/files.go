@@ -43,7 +43,8 @@ func (a *App) saveUploaded(name string, r io.Reader) (string, error) {
 	if _, err := io.Copy(f, r); err != nil {
 		return "", err
 	}
-	return filepath.Join("uploads", mustRel(root, dest)), nil
+	// 返回相对 uploads 根目录的路径，与文件列表/打开目录使用同一套坐标
+	return mustRel(root, dest), nil
 }
 
 func sanitizeName(name string) string {

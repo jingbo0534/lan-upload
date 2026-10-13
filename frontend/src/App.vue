@@ -1,7 +1,7 @@
 <script setup>
 import { onMounted } from 'vue';
-import { store, toastState, toast, uploadState, notifyUpload } from './store.js';
-import { GetStatus } from './api.js';
+import { store, toastState, toast, uploadState, notifyUpload, closeUpload } from './store.js';
+import { GetStatus, OpenInExplorer } from './api.js';
 import { EventsOn, SendNotification, InitializeNotifications } from '../wailsjs/runtime/runtime';
 
 import Dashboard from './components/Dashboard.vue';
@@ -23,6 +23,7 @@ async function refreshStatus() {
 function switchTab(key) { store.nav = key; }
 
 async function onUpload(files) {
+  if (!files || files.length === 0) return;
   // 界面右下角弹窗
   notifyUpload(files);
   // 系统通知（尽力而为，便携版可能受限于应用标识）
@@ -32,6 +33,12 @@ async function onUpload(files) {
       body: files.length > 1 ? `收到 ${files.length} 个新文件` : files[0],
     });
   } catch (e) { /* 忽略系统通知失败 */ }
+}
+
+function openUploaded() {
+  const first = uploadState.files[0];
+  if (first) OpenInExplorer(first).catch((e) => toast(String(e), false));
+  closeUpload();
 }
 
 onMounted(async () => {
@@ -70,9 +77,13 @@ onMounted(async () => {
     <div id="toast" class="toast" :class="{ show: toastState.vis, err: !toastState.ok }">{{ toastState.msg }}</div>
 
     <!-- 右下角新文件弹窗 -->
-    <div class="upload-pop" :class="{ show: uploadState.vis }" @click="uploadState.vis = false">
+    <div class="upload-pop" :class="{ show: uploadState.vis }">
       <div class="up-title">📥 {{ uploadState.msg }}</div>
       <div v-for="f in uploadState.files" :key="f" class="up-file">{{ f }}</div>
+      <div class="up-ops">
+        <button class="btn sm primary" @click="openUploaded">打开</button>
+        <button class="btn sm ghost" @click="closeUpload">取消</button>
+      </div>
     </div>
   </div>
 </template>
@@ -96,4 +107,5 @@ onMounted(async () => {
 .upload-pop.show{opacity:1;transform:translateY(0);pointer-events:auto}
 .upload-pop .up-title{font-weight:700;font-size:14px;margin-bottom:6px}
 .upload-pop .up-file{font-size:12px;color:#475569;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.7}
+.upload-pop .up-ops{display:flex;gap:8px;justify-content:flex-end;margin-top:10px}
 </style>

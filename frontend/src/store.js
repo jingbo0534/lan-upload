@@ -30,12 +30,10 @@ export { toastState };
 
 // 右下角"收到新文件"弹窗
 const uploadState = reactive({ vis: false, msg: '', files: [] });
-let uploadTimer = null;
 export function notifyUpload(files) {
   uploadState.files = (files || []).slice(0, 5);
   uploadState.msg = files.length > 1 ? `${files.length} 个新文件已接收` : '收到新文件';
   uploadState.vis = true;
-  clearTimeout(uploadTimer);
-  uploadTimer = setTimeout(() => { uploadState.vis = false; }, 5000);
 }
+export function closeUpload() { uploadState.vis = false; }
 export { uploadState };

@@ -82,50 +82,59 @@
     refresh();
   });
 
-  function uploadOne(f) {
-    return new Promise(function (resolve) {
-      var xhr = new XMLHttpRequest();
-      var fd = new FormData();
-      fd.append('files', f.file, f.file.name);
-      f.status = 'uploading';
-      refresh();
-      xhr.open('POST', '/upload');
-      if ('upload' in xhr) {
-        xhr.upload.onprogress = function (e) {
-          if (e.lengthComputable) { f.pct = Math.round(e.loaded / e.total * 100); refresh(); }
-        };
-      }
-      xhr.onload = function () {
-        if (xhr.status === 200) {
-          try {
-            var r = JSON.parse(xhr.responseText);
-            f.status = r.ok ? 'ok' : 'err';
-            f.msg = r.ok ? '' : (r.failedDetail || []).join(', ');
-          } catch (e) { f.status = 'err'; f.msg = '解析失败'; }
-        } else {
-          f.status = 'err'; f.msg = 'HTTP ' + xhr.status;
-        }
-        refresh(); resolve(f.status);
-      };
-      xhr.onerror = function () { f.status = 'err'; f.msg = '连接失败'; refresh(); resolve('err'); };
-      xhr.send(fd);
-    });
-  }
-
   uploadBtn.addEventListener('click', function () {
     var pending = files.filter(function (f) { return f.status === 'pending'; });
     if (pending.length === 0) return;
     doneBox.hidden = true;
-    var done = 0, okN = 0;
-    // 顺序上传，避免同时打开过多连接
-    (function next(i) {
-      if (i >= pending.length) { showDone(okN, pending.length); return; }
-      uploadOne(pending[i]).then(function () {
-        if (pending[i].status === 'ok') okN++;
-        done++;
-        next(i + 1);
-      });
-    })(0);
+
+    // 一次请求提交本次选中的所有文件（服务端按顺序返回每条结果）
+    var fd = new FormData();
+    pending.forEach(function (f) {
+      fd.append('files', f.file, f.file.name);
+      f.status = 'uploading';
+      f.pct = 0;
+    });
+    refresh();
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload');
+    if ('upload' in xhr) {
+      xhr.upload.onprogress = function (e) {
+        if (!e.lengthComputable) return;
+        var pct = Math.round(e.loaded / e.total * 100);
+        pending.forEach(function (f) { f.pct = pct; });
+        refresh();
+      };
+    }
+
+    function markAll(status, msg) {
+      pending.forEach(function (f) { f.status = status; f.msg = msg || ''; });
+    }
+
+    xhr.onload = function () {
+      var okN = 0;
+      if (xhr.status === 200) {
+        try {
+          var r = JSON.parse(xhr.responseText);
+          var res = r.results || [];
+          pending.forEach(function (f, i) {
+            var item = res[i];
+            if (item && item.ok) { f.status = 'ok'; f.msg = ''; okN++; }
+            else { f.status = 'err'; f.msg = (item && item.err) || '上传失败'; }
+          });
+        } catch (e) { markAll('err', '解析失败'); }
+      } else {
+        markAll('err', 'HTTP ' + xhr.status);
+      }
+      refresh();
+      showDone(okN, pending.length);
+    };
+    xhr.onerror = function () {
+      markAll('err', '连接失败');
+      refresh();
+      showDone(0, pending.length);
+    };
+    xhr.send(fd);
   });
 
   function showDone(ok, total) {
